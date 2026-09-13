@@ -1,6 +1,6 @@
 // AG PILOT CAL — service worker
 // Sube CACHE_VERSION cada vez que cambies archivos para forzar la actualización.
-const CACHE_VERSION = 'ag-pilot-cal-v8';
+const CACHE_VERSION = 'ag-pilot-cal-v9';
 
 const APP_SHELL = [
   './',
@@ -9,6 +9,7 @@ const APP_SHELL = [
   './css/style.css',
   './modules/john-deere-siembra.html',
   './modules/trimble.html',
+  './modules/case-ih.html',
   './img/icon-192.png',
   './img/icon-512.png',
   './img/icon-192-maskable.png',
