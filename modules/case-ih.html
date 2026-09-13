@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Case IH · Compensación de Apero — AG PILOT CAL</title>
+<meta name="theme-color" content="#0a0f0c">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../img/favicon.png">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <img src="../img/icon-192.png" alt="AG PILOT CAL">
+  <div class="brand">AG PILOT <span>CAL</span></div>
+  <a class="back" href="../index.html">← Inicio</a>
+</header>
+
+<main>
+
+  <section>
+    <div class="section-title">CASE IH · COMPENSACIÓN DE APERO</div>
+    <div class="card">
+      <p>Seleccioná tu monitor, cargá la separación entre líneas y las mediciones a
+      izquierda y derecha para obtener la compensación de apero recomendada.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+
+      <label for="monitorCase">Monitor</label>
+      <select id="monitorCase">
+        <option>AFS Pro 700</option>
+        <option>Pro 1200</option>
+        <option>Vector Pro</option>
+        <option>AccuGuide</option>
+      </select>
+
+      <label for="unidadCase">Unidad de medida</label>
+      <select id="unidadCase">
+        <option value="cm">Centímetros (cm)</option>
+        <option value="mm">Milímetros (mm)</option>
+      </select>
+
+      <label for="anchoCase">Separación entre líneas</label>
+      <input id="anchoCase" type="number" inputmode="decimal" placeholder="Ej: 52">
+
+      <label for="izquierdaCase">Medición izquierda</label>
+      <input id="izquierdaCase" type="number" inputmode="decimal" placeholder="Ej: 24">
+
+      <label for="derechaCase">Medición derecha</label>
+      <input id="derechaCase" type="number" inputmode="decimal" placeholder="Ej: 80">
+
+      <button class="primary" onclick="calcularCaseIH()">Calcular compensación</button>
+      <button class="secondary" onclick="reiniciarCaseIH()">Reiniciar</button>
+
+    </div>
+  </section>
+
+  <section class="result" id="resultadoCaseIH">
+    <div class="card">
+      <h2>Resultado</h2>
+
+      <div class="box">
+        <b>Ancho esperado</b>
+        <div id="rAnchoEsperado" class="value"></div>
+      </div>
+
+      <div class="box">
+        <b>Suma medida</b>
+        <div id="rSumaMedida" class="value"></div>
+      </div>
+
+      <div class="status-line" id="rVerificacion"></div>
+
+      <div class="box" style="margin-top:16px;">
+        <b>Compensación recomendada</b>
+        <div id="rCompensacion" class="value" style="font-size:1.6rem;"></div>
+      </div>
+
+      <div class="action-list">
+        <h3 id="rEstadoPiloto"></h3>
+        <div id="rAccion"></div>
+        <p style="color:var(--text-dim);font-size:.85rem;margin-top:12px;">
+          Aplicá el valor en el monitor CASE IH, creá una nueva línea AB y repetí
+          las tres pasadas de verificación.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="contact">
+    <div class="label">Contacto</div>
+    <div class="name">Pablo Ortiz</div>
+    <a href="tel:03583486922">📞 03583 486922</a>
+    <a href="mailto:pabloortiz01@hotmail.com">✉️ pabloortiz01@hotmail.com</a>
+  </div>
+  <strong>AG PILOT CAL</strong>
+</footer>
+
+<script>
+// Fórmula de compensación de apero Case IH — validada por el usuario.
+function calcularCaseIH(){
+
+    let unidad = document.getElementById("unidadCase").value;
+    let ancho = parseFloat(document.getElementById("anchoCase").value);
+    let izquierda = parseFloat(document.getElementById("izquierdaCase").value);
+    let derecha = parseFloat(document.getElementById("derechaCase").value);
+
+    if(isNaN(ancho) || isNaN(izquierda) || isNaN(derecha)){
+        alert("Complete todos los campos");
+        return;
+    }
+
+    if(unidad === "mm"){
+        ancho = ancho / 10;
+        izquierda = izquierda / 10;
+        derecha = derecha / 10;
+    }
+
+    let anchoEsperado = ancho * 2;
+    let sumaMedida = izquierda + derecha;
+    let errorMedicion = Math.abs(sumaMedida - anchoEsperado);
+
+    let estadoPrueba = "";
+    let clasePrueba = "";
+
+    if(errorMedicion <= 2){
+        estadoPrueba = "Prueba válida - Excelente";
+        clasePrueba = "status-ok";
+    } else if(errorMedicion <= 5){
+        estadoPrueba = "Prueba válida - Aceptable";
+        clasePrueba = "status-warn";
+    } else if(errorMedicion <= 10){
+        estadoPrueba = "Revisar medición";
+        clasePrueba = "status-warn";
+    } else {
+        estadoPrueba = "Repetir prueba";
+        clasePrueba = "status-danger";
+    }
+
+    let compensacion = (izquierda - derecha) / 2;
+    let absComp = Math.abs(compensacion);
+
+    let estadoPiloto = "";
+    let clasePiloto = "";
+
+    if(absComp <= 2){
+        estadoPiloto = "🟢 CALIBRADO";
+        clasePiloto = "status-ok";
+    } else if(absComp <= 5){
+        estadoPiloto = "🟡 Corrección leve";
+        clasePiloto = "status-warn";
+    } else if(absComp <= 15){
+        estadoPiloto = "🟡 Corrección media";
+        clasePiloto = "status-warn";
+    } else {
+        estadoPiloto = "⚠ Descalibración importante";
+        clasePiloto = "status-danger";
+    }
+
+    let accion = "";
+    if(compensacion > 0){
+        accion = "Aumentar compensación de apero";
+    } else if(compensacion < 0){
+        accion = "Disminuir compensación de apero";
+    } else {
+        accion = "No requiere corrección";
+    }
+
+    document.getElementById("rAnchoEsperado").innerHTML = anchoEsperado.toFixed(1) + " cm";
+    document.getElementById("rSumaMedida").innerHTML = sumaMedida.toFixed(1) + " cm";
+    document.getElementById("rVerificacion").innerHTML = `<span class="${clasePrueba}">${estadoPrueba}</span>`;
+    document.getElementById("rCompensacion").innerHTML = compensacion.toFixed(1) + " cm";
+    document.getElementById("rEstadoPiloto").innerHTML = `<span class="${clasePiloto}">${estadoPiloto}</span>`;
+    document.getElementById("rAccion").innerHTML = accion;
+
+    document.getElementById("resultadoCaseIH").style.display = "block";
+}
+
+function reiniciarCaseIH(){
+    document.getElementById("monitorCase").selectedIndex = 0;
+    document.getElementById("unidadCase").selectedIndex = 0;
+    document.getElementById("anchoCase").value = "";
+    document.getElementById("izquierdaCase").value = "";
+    document.getElementById("derechaCase").value = "";
+    document.getElementById("resultadoCaseIH").style.display = "none";
+}
+</script>
+
+</body>
+</html>
