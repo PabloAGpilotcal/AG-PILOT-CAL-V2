@@ -73,9 +73,14 @@
       <h2>Diagnóstico</h2>
       <div id="estado" class="status-line"></div>
 
-      <div class="box">
+      <div class="box" id="valorCBox">
         <b>Corrección Valor C</b>
         <div id="valorC" class="value"></div>
+      </div>
+
+      <div class="box" id="avisoCentrado" style="display:none;">
+        <b>⚠ Centrado pendiente</b>
+        <div>Primero corregí el ancho de apero según lo indicado abajo. Una vez centrado, volvé a medir en el surco para recién ahí calcular el Valor C.</div>
       </div>
 
       <div class="box">
@@ -141,19 +146,32 @@ function calcular(){
 
     let tolerancia = 0.02;
     let estado = "";
-    if(Math.abs(suma - teorico) <= tolerancia){
+    let centrado = Math.abs(suma - teorico) <= tolerancia;
+    if(centrado){
         estado = '<span class="status-ok">🟢 APERO CENTRADO</span>';
     } else {
         estado = '<span class="status-warn">⚠ VERIFICAR CENTRADO</span>';
     }
 
     document.getElementById("estado").innerHTML = estado;
-    document.getElementById("valorC").innerHTML = valorC.toFixed(3) + " m<br>" + direccion;
     document.getElementById("anchoApero").innerHTML = textoApero;
-    document.getElementById("acciones").innerHTML =
-        "1. Modificar Valor C: " + valorC.toFixed(3) + " m<br><br>" +
-        "2. " + textoApero + "<br><br>" +
-        "3. Verificar nuevamente en campo.";
+
+    if(centrado){
+        document.getElementById("valorCBox").style.display = "block";
+        document.getElementById("avisoCentrado").style.display = "none";
+        document.getElementById("valorC").innerHTML = valorC.toFixed(3) + " m<br>" + direccion;
+        document.getElementById("acciones").innerHTML =
+            "1. Modificar Valor C: " + valorC.toFixed(3) + " m<br><br>" +
+            "2. " + textoApero + "<br><br>" +
+            "3. Verificar nuevamente en campo.";
+    } else {
+        document.getElementById("valorCBox").style.display = "none";
+        document.getElementById("avisoCentrado").style.display = "block";
+        document.getElementById("acciones").innerHTML =
+            "1. " + textoApero + "<br><br>" +
+            "2. Volvé a medir izquierda y derecha con el apero ya centrado.<br><br>" +
+            "3. Recién ahí calculá el Valor C.";
+    }
 
     document.getElementById("resultado").style.display = "block";
 }
@@ -162,6 +180,8 @@ function reiniciar(){
     document.getElementById("surco").value = "0.525";
     document.getElementById("izq").value = "";
     document.getElementById("der").value = "";
+    document.getElementById("valorCBox").style.display = "block";
+    document.getElementById("avisoCentrado").style.display = "none";
     document.getElementById("resultado").style.display = "none";
 }
 </script>
