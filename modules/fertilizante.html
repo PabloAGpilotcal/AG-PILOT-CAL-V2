@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dosis de Fertilizante — AG PILOT CAL</title>
+<meta name="theme-color" content="#0a0f0c">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../img/favicon.png">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <img src="../img/icon-192.png" alt="AG PILOT CAL">
+  <div class="brand">AG PILOT <span>CAL</span></div>
+  <a class="back" href="../index.html">← Inicio</a>
+</header>
+
+<main>
+
+  <section>
+    <div class="section-title">DOSIS DE FERTILIZANTE</div>
+    <div class="card">
+      <p>Cargá el espaciamiento entre líneas, la dosis deseada, la cantidad de líneas
+      de la fertilizadora y la distancia de recolección para saber cuántos kilos
+      tenés que juntar en la prueba a campo.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+
+      <label for="espaciamientoFert">Espaciamiento entre líneas (m)</label>
+      <input id="espaciamientoFert" type="number" step="0.01" inputmode="decimal" placeholder="Ej: 0.52">
+
+      <label for="dosisFert">Dosis deseada (kg/ha)</label>
+      <input id="dosisFert" type="number" step="1" inputmode="decimal" placeholder="Ej: 150">
+
+      <label for="lineasFert">Cantidad de líneas de la fertilizadora</label>
+      <input id="lineasFert" type="number" step="1" inputmode="numeric" placeholder="Ej: 24">
+
+      <label for="distanciaFert">Distancia de recolección (m)</label>
+      <input id="distanciaFert" type="number" step="1" inputmode="decimal" placeholder="Ej: 50">
+
+      <button class="primary" onclick="calcularFertilizante()">Calcular</button>
+      <button class="secondary" onclick="reiniciarFertilizante()">Reiniciar</button>
+
+    </div>
+  </section>
+
+  <section class="result" id="resultadoFert">
+    <div class="card">
+      <h2>Resultado</h2>
+
+      <div class="box">
+        <b>Área de prueba</b>
+        <div id="rAreaFert" class="value"></div>
+      </div>
+
+      <div class="box" style="margin-top:12px;">
+        <b>Kilos a recolectar</b>
+        <div id="rKilosFert" class="value" style="font-size:1.6rem;"></div>
+      </div>
+
+      <div class="action-list">
+        <h3>Cómo usarlo</h3>
+        <div>
+          Recorré los <span id="rDistanciaTxt"></span> m con la fertilizadora funcionando,
+          juntá lo que salió de las <span id="rLineasTxt"></span> líneas, pesalo y compará
+          contra el valor de arriba. Si pesa de más, reducí la apertura del dosificador;
+          si pesa de menos, aumentala.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="contact">
+    <div class="label">Contacto</div>
+    <div class="name">Pablo Ortiz</div>
+    <a href="tel:03583486922">📞 03583 486922</a>
+    <a href="mailto:pabloortiz01@hotmail.com">✉️ pabloortiz01@hotmail.com</a>
+  </div>
+  <strong>AG PILOT CAL</strong>
+</footer>
+
+<script>
+// Cálculo de kilos a recolectar en prueba de fertilizante — validado por el usuario.
+function calcularFertilizante(){
+
+    let espaciamiento = parseFloat(document.getElementById("espaciamientoFert").value);
+    let dosis = parseFloat(document.getElementById("dosisFert").value);
+    let lineas = parseFloat(document.getElementById("lineasFert").value);
+    let distancia = parseFloat(document.getElementById("distanciaFert").value);
+
+    if(isNaN(espaciamiento) || isNaN(dosis) || isNaN(lineas) || isNaN(distancia)){
+        alert("Complete todos los campos.");
+        return;
+    }
+
+    let areaM2 = distancia * espaciamiento * lineas;
+    let areaHa = areaM2 / 10000;
+    let kilosEsperados = dosis * areaHa;
+
+    document.getElementById("rAreaFert").innerHTML = areaM2.toFixed(1) + " m² (" + areaHa.toFixed(4) + " ha)";
+    document.getElementById("rKilosFert").innerHTML = kilosEsperados.toFixed(3) + " kg";
+    document.getElementById("rDistanciaTxt").textContent = distancia;
+    document.getElementById("rLineasTxt").textContent = lineas;
+
+    document.getElementById("resultadoFert").style.display = "block";
+}
+
+function reiniciarFertilizante(){
+    document.getElementById("espaciamientoFert").value = "";
+    document.getElementById("dosisFert").value = "";
+    document.getElementById("lineasFert").value = "";
+    document.getElementById("distanciaFert").value = "";
+    document.getElementById("resultadoFert").style.display = "none";
+}
+</script>
+
+</body>
+</html>
