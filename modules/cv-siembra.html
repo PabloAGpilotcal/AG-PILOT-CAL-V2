@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CV de Siembra — AG PILOT CAL</title>
+<meta name="theme-color" content="#0a0f0c">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../img/favicon.png">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <img src="../img/icon-192.png" alt="AG PILOT CAL">
+  <div class="brand">AG PILOT <span>CAL</span></div>
+  <a class="back" href="../index.html">← Inicio</a>
+</header>
+
+<main>
+
+  <section>
+    <div class="section-title">DISTRIBUCIÓN DE SIEMBRA · CV%</div>
+    <div class="card">
+      <p>Medí sobre una cinta la posición de cada semilla y cargalas acá para obtener
+      el coeficiente de variación (CV%) y el diagnóstico de uniformidad de siembra.</p>
+    </div>
+  </section>
+
+  <section id="cv-siembra">
+    <div class="card">
+
+      <label for="objetivo">Espaciamiento objetivo entre semillas (cm)</label>
+      <input type="number" id="objetivo" placeholder="Ej: 35" step="0.1" inputmode="decimal">
+
+      <p class="hint">
+        Ingresá las posiciones medidas sobre la cinta, una medida por línea, en orden.
+        Máximo 50 semillas.
+      </p>
+
+      <p class="counter" id="contador">Semillas cargadas: 0 / 50</p>
+
+      <textarea id="semillas" rows="12" placeholder="35
+70
+105
+140
+175"></textarea>
+
+      <div class="botones">
+        <button class="primary" onclick="calcularCV()">Calcular</button>
+        <button class="secondary" onclick="reiniciarCV()">Reiniciar</button>
+      </div>
+
+      <div id="resultadoCV"></div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="contact">
+    <div class="label">Contacto</div>
+    <div class="name">Pablo Ortiz</div>
+    <a href="tel:03583486922">📞 03583 486922</a>
+    <a href="mailto:pabloortiz01@hotmail.com">✉️ pabloortiz01@hotmail.com</a>
+  </div>
+  <strong>AG PILOT CAL</strong>
+</footer>
+
+<script>
+const textarea = document.getElementById("semillas");
+const contador = document.getElementById("contador");
+
+textarea.addEventListener("input", () => {
+    let lineas = textarea.value
+        .split("\n")
+        .filter(l => l.trim() !== "");
+
+    if (lineas.length > 50) {
+        lineas = lineas.slice(0, 50);
+        textarea.value = lineas.join("\n");
+    }
+
+    contador.textContent = `Semillas cargadas: ${lineas.length} / 50`;
+});
+
+// Cálculo de CV% de distribución de siembra — validado por el usuario.
+function calcularCV() {
+
+    const objetivo = parseFloat(document.getElementById("objetivo").value);
+
+    if (!objetivo) {
+        alert("Ingrese el espaciamiento objetivo.");
+        return;
+    }
+
+    const posiciones = document
+        .getElementById("semillas")
+        .value
+        .split("\n")
+        .map(x => parseFloat(x))
+        .filter(x => !isNaN(x));
+
+    if (posiciones.length < 2) {
+        alert("Ingrese al menos 2 semillas.");
+        return;
+    }
+
+    const espaciamientos = [];
+    for (let i = 1; i < posiciones.length; i++) {
+        espaciamientos.push(posiciones[i] - posiciones[i - 1]);
+    }
+
+    const total = espaciamientos.length;
+    const promedio = espaciamientos.reduce((a,b)=>a+b,0) / total;
+    const varianza = espaciamientos.reduce((ac,v)=>ac + Math.pow(v-promedio,2), 0) / total;
+    const desvio = Math.sqrt(varianza);
+    const cv = (desvio / promedio) * 100;
+
+    let correctos = 0;
+    let dobles = 0;
+    let fallas = 0;
+
+    const inf = objetivo - 2;
+    const sup = objetivo + 2;
+
+    for (let e of espaciamientos) {
+        if (e >= inf && e <= sup) correctos++;
+        if (e <= objetivo / 2) dobles++;
+        if (e >= objetivo * 2) fallas++;
+    }
+
+    const pCorrectos = (correctos / total) * 100;
+    const pDobles = (dobles / total) * 100;
+    const pFallas = (fallas / total) * 100;
+
+    let clasificacion = "";
+    if (cv < 15) clasificacion = "🟢 EXCELENTE";
+    else if (cv < 20) clasificacion = "🟡 BUENO";
+    else if (cv < 30) clasificacion = "🟠 REGULAR";
+    else clasificacion = "🔴 DEFICIENTE";
+
+    document.getElementById("resultadoCV").innerHTML = `
+        <div class="box" style="margin-top:20px;">
+          <div class="result-row"><b>Espaciamiento objetivo</b><span>${objetivo} cm</span></div>
+          <div class="result-row"><b>Semillas medidas</b><span>${posiciones.length}</span></div>
+          <div class="result-row"><b>Espaciamiento promedio</b><span>${promedio.toFixed(2)} cm</span></div>
+          <div class="result-row"><b>Correctos (±2 cm)</b><span>${pCorrectos.toFixed(1)} %</span></div>
+          <div class="result-row"><b>Dobles</b><span>${pDobles.toFixed(1)} %</span></div>
+          <div class="result-row"><b>Fallas</b><span>${pFallas.toFixed(1)} %</span></div>
+          <div class="result-row"><b>CV</b><span>${cv.toFixed(1)} %</span></div>
+        </div>
+        <h2 class="status-line" style="margin-top:16px;">${clasificacion}</h2>
+    `;
+}
+
+function reiniciarCV() {
+    document.getElementById("objetivo").value = "";
+    document.getElementById("semillas").value = "";
+    document.getElementById("resultadoCV").innerHTML = "";
+    document.getElementById("contador").textContent = "Semillas cargadas: 0 / 50";
+}
+</script>
+
+</body>
+</html>
