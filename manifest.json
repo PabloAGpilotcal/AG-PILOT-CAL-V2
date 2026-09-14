@@ -1,7 +1,7 @@
 {
-  "name": "AG PILOT CAL - Calibración de Pilotos Agrícolas",
+  "name": "AG PILOT CAL - Herramientas de Precisión Agrícola",
   "short_name": "AG PILOT CAL",
-  "description": "Herramienta profesional para calibración de pilotos agrícolas en operaciones de siembra.",
+  "description": "Calibración de guiado, siembra y fertilización para el trabajo de precisión en el campo.",
   "start_url": "./index.html",
   "scope": "./",
   "id": "/",
