@@ -83,6 +83,10 @@
       </div>
 
       <div class="box" style="margin-top:16px;">
+        <b>Espaciamiento de siembra</b>
+        <div class="value" id="medidaEspaciamiento"></div>
+      </div>
+      <div class="box" style="margin-top:10px;">
         <b>Medida izquierda</b>
         <div class="value" id="medidaIzq"></div>
       </div>
@@ -136,6 +140,7 @@
 
 <script>
 const BASE = 40;
+const ESPACIAMIENTOS = [17.5, 19, 20, 21, 26, 35, 38, 40, 42, 52.5, 63, 70, 76.2, 80, 90, 100];
 const VIDAS_INICIALES = 3;
 const TOLERANCIA_INICIAL = 3;
 const TOLERANCIA_MINIMA = 0.5;
@@ -162,13 +167,16 @@ function actualizarLecturaSlider(){
 }
 
 function nuevaRonda(){
+    let espaciamiento = ESPACIAMIENTOS[Math.floor(Math.random() * ESPACIAMIENTOS.length)];
+
     descentradoActual = (Math.random() * 24 - 12); // entre -12 y 12
     if (Math.abs(descentradoActual) < 1) descentradoActual = 1 * (Math.random() < 0.5 ? -1 : 1);
     descentradoActual = Math.round(descentradoActual * 10) / 10;
 
-    let izq = BASE + descentradoActual;
-    let der = BASE - descentradoActual;
+    let izq = espaciamiento + descentradoActual;
+    let der = espaciamiento - descentradoActual;
 
+    document.getElementById('medidaEspaciamiento').textContent = espaciamiento + ' cm';
     document.getElementById('medidaIzq').textContent = izq.toFixed(1) + ' cm';
     document.getElementById('medidaDer').textContent = der.toFixed(1) + ' cm';
 
