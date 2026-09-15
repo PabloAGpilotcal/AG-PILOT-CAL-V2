@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Centrá el Apero — AG PILOT CAL</title>
+<meta name="theme-color" content="#0a0f0c">
+<link rel="manifest" href="../manifest.json">
+<link rel="icon" href="../img/favicon.png">
+<link rel="apple-touch-icon" href="../img/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  /* Estilos exclusivos del juego, no tocan nada del resto de la app */
+  .slider-wrap{ margin:24px 0; }
+  input[type="range"]{
+    width:100%;
+    accent-color: var(--accent);
+    height: 8px;
+  }
+  .slider-value{
+    text-align:center;
+    font-family:'Oswald',sans-serif;
+    font-size:1.8rem;
+    margin:10px 0;
+  }
+  .slider-labels{
+    display:flex;
+    justify-content:space-between;
+    color:var(--text-dim);
+    font-size:.8rem;
+  }
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    background:var(--surface-2);
+    border-radius:var(--radius-sm);
+    padding:12px 16px;
+    margin-bottom:10px;
+  }
+  .stat-row b{ color:var(--text-dim); font-weight:500; }
+  .lives{ font-size:1.2rem; letter-spacing:4px; }
+  #pantallaFinal{ display:none; text-align:center; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <img src="../img/icon-192.png" alt="AG PILOT CAL">
+  <div class="brand">AG PILOT <span>CAL</span></div>
+  <a class="back" href="../index.html">← Inicio</a>
+</header>
+
+<main>
+
+  <section>
+    <div class="section-title">🎮 CENTRÁ EL APERO</div>
+    <div class="card">
+      <p>Te mostramos la medida izquierda y derecha. Ajustá el control hasta donde creas
+      que el apero queda centrado y confirmá. Cuantas más rondas acertés seguidas, más
+      exigente se pone la tolerancia.</p>
+    </div>
+  </section>
+
+  <section id="juego">
+    <div class="card">
+
+      <div class="stat-row">
+        <b>Puntos</b><span id="puntos">0</span>
+      </div>
+      <div class="stat-row">
+        <b>Racha actual</b><span id="racha">0</span>
+      </div>
+      <div class="stat-row">
+        <b>Mejor puntaje</b><span id="mejor">0</span>
+      </div>
+      <div class="stat-row">
+        <b>Vidas</b><span class="lives" id="vidas">❤️❤️❤️</span>
+      </div>
+
+      <div class="box" style="margin-top:16px;">
+        <b>Medida izquierda</b>
+        <div class="value" id="medidaIzq"></div>
+      </div>
+      <div class="box" style="margin-top:10px;">
+        <b>Medida derecha</b>
+        <div class="value" id="medidaDer"></div>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="slider-value" id="valorSlider">0.0 cm — CENTRADO</div>
+        <input type="range" id="slider" min="-20" max="20" step="0.5" value="0">
+        <div class="slider-labels">
+          <span>◀ IZQUIERDA</span>
+          <span>DERECHA ▶</span>
+        </div>
+      </div>
+
+      <button class="primary" onclick="confirmarJugada()">Confirmar</button>
+
+      <div class="action-list" id="resultadoRonda" style="display:none;">
+        <h3 id="veredicto"></h3>
+        <div id="detalleRonda"></div>
+        <button class="primary" style="margin-top:14px;" onclick="siguienteRonda()">Siguiente ronda</button>
+      </div>
+
+    </div>
+
+    <div class="card" id="pantallaFinal">
+      <h2>Fin del juego</h2>
+      <p style="color:var(--text-dim);">Se acabaron las vidas.</p>
+      <div class="box">
+        <b>Puntaje final</b>
+        <div class="value" id="puntajeFinal"></div>
+      </div>
+      <button class="primary" style="margin-top:16px;" onclick="reiniciarJuego()">Jugar de nuevo</button>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  <div class="contact">
+    <div class="label">Contacto</div>
+    <div class="name">Pablo Ortiz</div>
+    <a href="https://wa.me/5493583486922" target="_blank" rel="noopener">💬 03583 486922</a>
+    <a href="mailto:pabloortiz01@hotmail.com">✉️ pabloortiz01@hotmail.com</a>
+  </div>
+  <strong>AG PILOT CAL</strong>
+</footer>
+
+<script>
+const BASE = 40;
+const VIDAS_INICIALES = 3;
+const TOLERANCIA_INICIAL = 3;
+const TOLERANCIA_MINIMA = 0.5;
+
+let puntos = 0;
+let racha = 0;
+let vidas = VIDAS_INICIALES;
+let tolerancia = TOLERANCIA_INICIAL;
+let descentradoActual = 0;
+let mejor = parseInt(localStorage.getItem('agpilotcal_mejor_centrado') || '0');
+
+const slider = document.getElementById('slider');
+const valorSlider = document.getElementById('valorSlider');
+
+slider.addEventListener('input', actualizarLecturaSlider);
+
+function actualizarLecturaSlider(){
+    let v = parseFloat(slider.value);
+    let texto = "";
+    if (v > 0.05) texto = `+${v.toFixed(1)} cm — DERECHA`;
+    else if (v < -0.05) texto = `${v.toFixed(1)} cm — IZQUIERDA`;
+    else texto = `0.0 cm — CENTRADO`;
+    valorSlider.textContent = texto;
+}
+
+function nuevaRonda(){
+    descentradoActual = (Math.random() * 24 - 12); // entre -12 y 12
+    if (Math.abs(descentradoActual) < 1) descentradoActual = 1 * (Math.random() < 0.5 ? -1 : 1);
+    descentradoActual = Math.round(descentradoActual * 10) / 10;
+
+    let izq = BASE + descentradoActual;
+    let der = BASE - descentradoActual;
+
+    document.getElementById('medidaIzq').textContent = izq.toFixed(1) + ' cm';
+    document.getElementById('medidaDer').textContent = der.toFixed(1) + ' cm';
+
+    slider.value = 0;
+    actualizarLecturaSlider();
+
+    document.getElementById('resultadoRonda').style.display = 'none';
+    document.getElementById('juego').querySelector('.card').style.display = 'block';
+    document.getElementById('pantallaFinal').style.display = 'none';
+
+    actualizarPanel();
+}
+
+function actualizarPanel(){
+    document.getElementById('puntos').textContent = puntos;
+    document.getElementById('racha').textContent = racha;
+    document.getElementById('mejor').textContent = mejor;
+    document.getElementById('vidas').textContent = '❤️'.repeat(Math.max(vidas,0)) + '🖤'.repeat(VIDAS_INICIALES - Math.max(vidas,0));
+}
+
+function confirmarJugada(){
+    let guess = parseFloat(slider.value);
+    let error = Math.abs(guess - descentradoActual);
+    let acierto = error <= tolerancia;
+
+    let veredicto = document.getElementById('veredicto');
+    let detalle = document.getElementById('detalleRonda');
+
+    if (acierto){
+        puntos += 10;
+        racha += 1;
+        if (puntos > mejor){
+            mejor = puntos;
+            localStorage.setItem('agpilotcal_mejor_centrado', mejor.toString());
+        }
+        tolerancia = Math.max(TOLERANCIA_MINIMA, tolerancia - 0.2);
+        veredicto.innerHTML = '<span class="status-ok">🟢 CENTRADO — +10 puntos</span>';
+        detalle.innerHTML = `El valor real era ${descentradoActual.toFixed(1)} cm. Tu ajuste: ${guess.toFixed(1)} cm. Próxima tolerancia: ±${tolerancia.toFixed(1)} cm.`;
+    } else {
+        vidas -= 1;
+        veredicto.innerHTML = '<span class="status-danger">⚠ FUERA DE TOLERANCIA</span>';
+        detalle.innerHTML = `El valor real era ${descentradoActual.toFixed(1)} cm. Tu ajuste: ${guess.toFixed(1)} cm (tolerancia ±${tolerancia.toFixed(1)} cm). Te quedan ${Math.max(vidas,0)} vidas.`;
+    }
+
+    actualizarPanel();
+    document.getElementById('resultadoRonda').style.display = 'block';
+
+    if (vidas <= 0){
+        setTimeout(mostrarFinal, 400);
+    }
+}
+
+function siguienteRonda(){
+    nuevaRonda();
+}
+
+function mostrarFinal(){
+    document.getElementById('juego').querySelector('.card').style.display = 'none';
+    document.getElementById('pantallaFinal').style.display = 'block';
+    document.getElementById('puntajeFinal').textContent = puntos + ' puntos';
+}
+
+function reiniciarJuego(){
+    puntos = 0;
+    racha = 0;
+    vidas = VIDAS_INICIALES;
+    tolerancia = TOLERANCIA_INICIAL;
+    nuevaRonda();
+}
+
+nuevaRonda();
+</script>
+
+</body>
+</html>
